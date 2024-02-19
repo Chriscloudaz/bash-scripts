@@ -1,10 +1,16 @@
-#!/bin/bash 
+#!/bin/bash
 
-logfile="/var/log/server_script.log"
-errorlog="/var/log/server_script_errors.log"
+# Author: Chris Parbey 
+
+# Usage: Automatically installs and configures nginx server on ubuntu
+
+current_date="$(date +%Y-%m-%d)"
+logfile="/var/log/server_script_$current_date.log"
+errorlog="/var/log/server_script_errors_$current_date.log"
 host_directory="/etc/nginx/sites-enabled"
 web_directory="/var/www/html"
 server_ip="127.0.0.1"
+etc_path="/etc/hosts"
 
 check_exit_status() {
     if [ $? -ne 0 ]; 
@@ -26,24 +32,20 @@ fi
 
 # Updates the system
 
-sudo apt update 1>>$logfile 2>>$errorlog
+sudo apt update 1>>"$logfile" 2>>"$errorlog"
 check_exit_status
 
-sudo apt upgrade -y 1>>$logfile 2>>$errorlog
+sudo apt upgrade -y 1>>"$logfile" 2>>"$errorlog"
 check_exit_status 
 
 # Installs NGINX server 
 
-sudo apt update 1>>$logfile 2>>$errorlog
-check_exit_status
-
-sudo apt install nginx -y 1>>$logfile 2>>$errorlog
+sudo apt install nginx -y 1>>"$logfile" 2>>"$errorlog"
 check_exit_status
 
 # Configure Hostname and Localhost
 
-echo "Please enter your preferred hostname"
-read hostname
+read -r -p "Please enter your preferred hostname": hostname
 
 echo "server {
        listen 80;
@@ -57,25 +59,25 @@ echo "server {
        location / {
                try_files $uri $uri/ =404;
        }
-}" >> "$host_directory/$hostname.conf" 1>>$logfile 2>>$errorlog
+}" | tee "$host_directory/$hostname.conf" 1>>"$logfile" 2>>"$errorlog"
 check_exit_status
 
 # Map hostname to localhost
 
-echo "$server_ip $hostname" >> /etc/hosts 1>>$logfile 2>>$errorlog
+echo "$server_ip $hostname" | tee "$etc_path" 1>>"$logfile" 2>>"$errorlog"
 check_exit_status 
 
 
 # Create a Sample Web Page
-echo "Hello, World!" | sudo tee "$web_directory/index.html" 1>>$logfile 2>>$errorlog
+echo "Hello, World!" | tee "$web_directory/index.html" 1>>"$logfile" 2>>"$errorlog"
 check_exit_status
 
 # Start and Enable Web Server Service
 
-sudo service nginx restart 1>>$logfile 2>>$errorlog
+sudo service nginx restart 1>>"$logfile" 2>>"$errorlog"
 check_exit_status
 
 # Report completion
-echo "Server successfully setup"
-echo $hostname 
-echo $server_ip
+echo "Server successfully setup at === $current_date ===" 
+echo "$hostname" 
+echo "$server_ip"
