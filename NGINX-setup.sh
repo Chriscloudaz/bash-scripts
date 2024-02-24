@@ -1,7 +1,12 @@
 #!/bin/bash
 
-logfile="/var/log/server_script.log"
-errorlog="/var/log/server_script_errors.log"
+# Author: Chris Parbey 
+
+# Usage: Automatically installs and configures nginx server on ubuntu
+
+current_date="$(date +%Y-%m-%d)"
+logfile="/var/log/server_script_$current_date.log"
+errorlog="/var/log/server_script_errors_$current_date.log"
 host_directory="/etc/nginx/sites-enabled"
 web_directory="/var/www/html"
 server_ip="127.0.0.1"
@@ -73,6 +78,6 @@ sudo service nginx restart 1>>"$logfile" 2>>"$errorlog"
 check_exit_status
 
 # Report completion
-echo "Server successfully setup"
-echo $hostname 
-echo $server_ip
+echo "Server successfully setup at === $current_date ===" 
+echo "$hostname" 
+echo "$server_ip"
